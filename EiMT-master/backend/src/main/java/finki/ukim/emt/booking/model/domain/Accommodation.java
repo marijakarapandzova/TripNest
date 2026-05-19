@@ -1,0 +1,69 @@
+package finki.ukim.emt.booking.model.domain;
+
+import finki.ukim.emt.booking.model.enums.Category;
+import finki.ukim.emt.booking.model.enums.Condition;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@Table(name = "accommodations")
+@NamedEntityGraph(
+    name = "Accommodation.withHostAndCountry",
+    attributeNodes = {
+        @NamedAttributeNode(value = "host", subgraph = "host-subgraph")
+    },
+    subgraphs = {
+        @NamedSubgraph(
+            name = "host-subgraph",
+            attributeNodes = @NamedAttributeNode("country")
+        )
+    }
+)
+public class Accommodation extends BaseAuditableEntity {
+    @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Category category;
+
+    @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "host_id", nullable = false)
+    private Host host;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Condition condition = Condition.GOOD;
+
+    @Column(nullable = false)
+    private Integer numRooms;
+
+    @Column(nullable = false)
+    private Boolean rented = Boolean.FALSE;
+
+    public Accommodation(String name, Category category, Host host, Condition condition, Integer numRooms) {
+        this.name = name;
+        this.category = category;
+        this.host = host;
+        this.condition = condition;
+        this.numRooms = numRooms;
+        this.rented = false;
+    }
+
+    public Accommodation(String name, Category category, Host host, Condition condition, Integer numRooms, Boolean rented) {
+        this.name = name;
+        this.category = category;
+        this.host = host;
+        this.condition = condition;
+        this.numRooms = numRooms;
+        this.rented = rented;
+    }
+}

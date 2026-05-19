@@ -1,0 +1,86 @@
+package finki.ukim.emt.booking.service.application.impl;
+
+import finki.ukim.emt.booking.model.domain.Accommodation;
+import finki.ukim.emt.booking.model.domain.Host;
+import finki.ukim.emt.booking.model.dto.accommodations.CreateAccommodationDto;
+import finki.ukim.emt.booking.model.dto.accommodations.DisplayAccommodationDto;
+import finki.ukim.emt.booking.model.dto.accommodations.FilterAccommodationDto;
+import finki.ukim.emt.booking.model.projection.AccommodationDetailedSummaryProjection;
+import finki.ukim.emt.booking.model.projection.AccommodationSummaryProjection;
+import finki.ukim.emt.booking.service.application.AccommodationApplicationService;
+import finki.ukim.emt.booking.service.domain.AccommodationService;
+import finki.ukim.emt.booking.service.domain.HostService;
+import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class AccommodationApplicationServiceImpl implements AccommodationApplicationService {
+    private final AccommodationService accommodationService;
+    private final HostService hostService;
+
+    public AccommodationApplicationServiceImpl(AccommodationService accommodationService, HostService hostService) {
+        this.accommodationService = accommodationService;
+        this.hostService = hostService;
+    }
+
+    @Override
+    public List<DisplayAccommodationDto> findAll() {
+        return DisplayAccommodationDto.from(accommodationService.findAll());
+    }
+
+    @Override
+    public List<DisplayAccommodationDto> findAllByRented(Boolean rented) {
+        return DisplayAccommodationDto.from(accommodationService.findAllByRented(rented));
+    }
+
+    @Override
+    public List<AccommodationSummaryProjection> findAllSummary() {
+        return accommodationService.findAllSummary();
+    }
+
+    @Override
+    public List<AccommodationDetailedSummaryProjection> findAllDetailedSummary() {
+        return accommodationService.findAllDetailedSummary();
+    }
+
+    @Override
+    public DisplayAccommodationDto findById(Long id) {
+        Accommodation accommodation = accommodationService.findById(id);
+        return DisplayAccommodationDto.from(accommodation);
+    }
+
+    @Override
+    public DisplayAccommodationDto create(CreateAccommodationDto createAccommodationDto) {
+        Host host = hostService.findById(createAccommodationDto.hostId());
+        return DisplayAccommodationDto.from(accommodationService.create(createAccommodationDto.toAccommodation(host)));
+    }
+
+    @Override
+    public DisplayAccommodationDto update(Long id, CreateAccommodationDto createAccommodationDto) {
+        Host host = hostService.findById(createAccommodationDto.hostId());
+        return DisplayAccommodationDto.from(accommodationService.update(id, createAccommodationDto.toAccommodation(host)));
+    }
+
+    @Override
+    public DisplayAccommodationDto delete(Long id) {
+        return DisplayAccommodationDto.from(accommodationService.delete(id));
+    }
+
+    @Override
+    public DisplayAccommodationDto rent(Long id) {
+        return DisplayAccommodationDto.from(accommodationService.rent(id));
+    }
+
+    @Override
+    public DisplayAccommodationDto unrent(Long id) {
+        return DisplayAccommodationDto.from(accommodationService.unrent(id));
+    }
+
+    @Override
+    public Page<DisplayAccommodationDto> findAll(FilterAccommodationDto filter, int page, int size, String sortBy) {
+        return accommodationService.findAll(filter, page, size, sortBy)
+                .map(DisplayAccommodationDto::from);
+    }
+}

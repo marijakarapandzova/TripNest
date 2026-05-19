@@ -1,0 +1,222 @@
+import TravelExploreRoundedIcon from '@mui/icons-material/TravelExploreRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
+import {
+  AppBar,
+  Box,
+  Button,
+  Container,
+  Divider,
+  Drawer,
+  IconButton,
+  ListItemIcon,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Paper,
+  Toolbar,
+  Typography,
+} from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useState } from 'react';
+import { Link as RouterLink, useLocation } from 'react-router';
+
+const navItems: { label: string; to: string }[] = [
+  { label: 'Home', to: '/' },
+  { label: 'Stays', to: '/accommodations' },
+];
+
+const Header = () => {
+  const theme = useTheme();
+  const isMdUp = useMediaQuery(theme.breakpoints.up('md'));
+  const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen((open) => !open);
+  };
+
+  const isActive = (path: string) => {
+    if (path === '/') {
+      return location.pathname === '/';
+    }
+    return location.pathname === path || location.pathname.startsWith(`${path}/`);
+  };
+
+  const drawer = (
+    <Box onClick={handleDrawerToggle} sx={{ textAlign: 'left', pt: 1.5 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, pb: 1 }}>
+        <Typography variant='h6' component='span' sx={{ fontWeight: 700, color: 'primary.main' }}>
+          TripNest
+        </Typography>
+        <IconButton aria-label='close menu'>
+          <CloseRoundedIcon />
+        </IconButton>
+      </Box>
+      <Divider />
+      <List sx={{ px: 1, py: 1 }}>
+        {navItems.map((item) => (
+          <ListItem key={item.to} disablePadding>
+            <ListItemButton
+              component={RouterLink}
+              to={item.to}
+              selected={isActive(item.to)}
+              sx={{
+                borderRadius: 1.25,
+                mb: 0.5,
+                '&.Mui-selected': {
+                  bgcolor: (t) => t.palette.action.selected,
+                  color: 'primary.main',
+                  '&:hover': { bgcolor: (t) => t.palette.action.selected },
+                },
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 30, color: 'inherit' }}>
+                <TravelExploreRoundedIcon fontSize='small' />
+              </ListItemIcon>
+              <ListItemText primary={item.label} slotProps={{ primary: { sx: { fontWeight: 600 } } }} />
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+    </Box>
+  );
+
+  return (
+    <AppBar
+      position='sticky'
+      color='default'
+      elevation={0}
+      sx={{
+        borderBottom: 0,
+        bgcolor: (t) => alpha(t.palette.background.paper, 0.7),
+        boxShadow: 'none',
+      }}
+    >
+      <Container maxWidth='lg'>
+        <Toolbar disableGutters sx={{ minHeight: { xs: 66, sm: 78 }, gap: 2, py: 1 }}>
+          <Box
+            component={RouterLink}
+            to='/'
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              color: 'text.primary',
+              textDecoration: 'none',
+              mr: 'auto',
+            }}
+          >
+            <Paper
+              elevation={0}
+              sx={{
+                width: 42,
+                height: 42,
+                borderRadius: 999,
+                display: 'grid',
+                placeItems: 'center',
+                bgcolor: (t) => alpha(t.palette.primary.main, 0.14),
+                color: 'primary.main',
+                border: 1,
+                borderColor: (t) => alpha(t.palette.primary.main, 0.22),
+              }}
+            >
+              <TravelExploreRoundedIcon sx={{ fontSize: 24 }} />
+            </Paper>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                justifyContent: 'center',
+                lineHeight: 1,
+                gap: 0.15,
+              }}
+            >
+              <Typography
+                variant='h6'
+                component='span'
+                sx={{ fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.05 }}
+              >
+                TripNest
+              </Typography>
+              <Typography
+                variant='caption'
+                color='text.secondary'
+                sx={{ display: { xs: 'none', sm: 'block' }, lineHeight: 1.1 }}
+              >
+
+              </Typography>
+            </Box>
+          </Box>
+
+          {isMdUp ? (
+            <Paper
+              elevation={0}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.75,
+                px: 1,
+                py: 0.75,
+                borderRadius: 999,
+                border: 1,
+                borderColor: 'divider',
+                bgcolor: (t) => alpha(t.palette.background.paper, 0.75),
+              }}
+            >
+              {navItems.map((item) => (
+                <Button
+                  key={item.to}
+                  component={RouterLink}
+                  to={item.to}
+                  variant={isActive(item.to) ? 'contained' : 'text'}
+                  color={isActive(item.to) ? 'primary' : 'inherit'}
+                  sx={{
+                    px: 2,
+                    minHeight: 38,
+                    ...(isActive(item.to)
+                      ? {}
+                      : { color: 'text.secondary', '&:hover': { color: 'text.primary', bgcolor: 'transparent' } }),
+                  }}
+                >
+                  {item.label}
+                </Button>
+              ))}
+              <Divider flexItem orientation='vertical' sx={{ mx: 0.5, borderColor: (t) => alpha(t.palette.divider, 0.7) }} />
+              <Button variant='contained' color='secondary' sx={{ px: 2.5, minHeight: 38 }}>
+                Start
+              </Button>
+            </Paper>
+          ) : (
+            <IconButton
+              color='inherit'
+              aria-label='open menu'
+              edge='end'
+              onClick={handleDrawerToggle}
+            >
+              <MenuRoundedIcon />
+            </IconButton>
+          )}
+        </Toolbar>
+      </Container>
+      <Drawer
+        variant='temporary'
+        anchor='right'
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 280 },
+        }}
+      >
+        {drawer}
+      </Drawer>
+    </AppBar>
+  );
+};
+
+export default Header;
