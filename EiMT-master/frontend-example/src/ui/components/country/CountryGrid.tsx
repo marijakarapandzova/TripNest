@@ -4,12 +4,12 @@ import type { Country } from '../../../types/country';
 
 interface CountryGridProps {
   countries: Country[];
+  onEdit?: (country: Country) => void;
+  onDelete?: (country: Country) => void;
 }
 
-const CountryGrid = ({ countries }: CountryGridProps) => {
-  if (countries.length === 0) {
-    return null;
-  }
+const CountryGrid = ({ countries, onEdit, onDelete }: CountryGridProps) => {
+  if (countries.length === 0) return null;
 
   return (
     <Grid
@@ -25,7 +25,7 @@ const CountryGrid = ({ countries }: CountryGridProps) => {
           size={{ xs: 12, sm: 6, md: 4 }}
           sx={{ display: 'flex', minWidth: 0 }}
         >
-          <CountryCard country={country} />
+          <CountryCard country={country} onEdit={onEdit} onDelete={onDelete} />
         </Grid>
       ))}
     </Grid>

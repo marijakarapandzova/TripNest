@@ -1,6 +1,10 @@
 import TravelExploreRoundedIcon from '@mui/icons-material/TravelExploreRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
+import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
+import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
+import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
+import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import {
   AppBar,
   Box,
@@ -9,10 +13,10 @@ import {
   Divider,
   Drawer,
   IconButton,
-  ListItemIcon,
   List,
   ListItem,
   ListItemButton,
+  ListItemIcon,
   ListItemText,
   Paper,
   Toolbar,
@@ -21,28 +25,34 @@ import {
 import { alpha, useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useState } from 'react';
-import { Link as RouterLink, useLocation } from 'react-router';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router';
+import { useAuth } from '../../../../hooks/useAuth';
 
-const navItems: { label: string; to: string }[] = [
-  { label: 'Home', to: '/' },
-  { label: 'Stays', to: '/accommodations' },
+const navItems = [
+  { label: 'Home', to: '/', icon: <HomeRoundedIcon fontSize='small' /> },
+  { label: 'Stays', to: '/accommodations', icon: <TravelExploreRoundedIcon fontSize='small' /> },
+  { label: 'Hosts', to: '/hosts', icon: <PersonRoundedIcon fontSize='small' /> },
+  { label: 'Countries', to: '/countries', icon: <PublicRoundedIcon fontSize='small' /> },
 ];
 
 const Header = () => {
   const theme = useTheme();
   const isMdUp = useMediaQuery(theme.breakpoints.up('md'));
   const location = useLocation();
+  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { isLoggedIn, user, logout } = useAuth();
 
-  const handleDrawerToggle = () => {
-    setMobileOpen((open) => !open);
-  };
+  const handleDrawerToggle = () => setMobileOpen((open) => !open);
 
   const isActive = (path: string) => {
-    if (path === '/') {
-      return location.pathname === '/';
-    }
+    if (path === '/') return location.pathname === '/';
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
   };
 
   const drawer = (
@@ -73,13 +83,33 @@ const Header = () => {
                 },
               }}
             >
-              <ListItemIcon sx={{ minWidth: 30, color: 'inherit' }}>
-                <TravelExploreRoundedIcon fontSize='small' />
-              </ListItemIcon>
+              <ListItemIcon sx={{ minWidth: 30, color: 'inherit' }}>{item.icon}</ListItemIcon>
               <ListItemText primary={item.label} slotProps={{ primary: { sx: { fontWeight: 600 } } }} />
             </ListItemButton>
           </ListItem>
         ))}
+        <Divider sx={{ my: 1 }} />
+        {isLoggedIn ? (
+          <ListItem disablePadding>
+            <ListItemButton onClick={handleLogout} sx={{ borderRadius: 1.25 }}>
+              <ListItemIcon sx={{ minWidth: 30 }}><LogoutRoundedIcon fontSize='small' /></ListItemIcon>
+              <ListItemText primary='Sign out' slotProps={{ primary: { sx: { fontWeight: 600 } } }} />
+            </ListItemButton>
+          </ListItem>
+        ) : (
+          <>
+            <ListItem disablePadding>
+              <ListItemButton component={RouterLink} to='/login' sx={{ borderRadius: 1.25, mb: 0.5 }}>
+                <ListItemText primary='Sign in' slotProps={{ primary: { sx: { fontWeight: 600 } } }} />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton component={RouterLink} to='/register' sx={{ borderRadius: 1.25 }}>
+                <ListItemText primary='Register' slotProps={{ primary: { sx: { fontWeight: 600 } } }} />
+              </ListItemButton>
+            </ListItem>
+          </>
+        )}
       </List>
     </Box>
   );
@@ -125,31 +155,9 @@ const Header = () => {
             >
               <TravelExploreRoundedIcon sx={{ fontSize: 24 }} />
             </Paper>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-start',
-                justifyContent: 'center',
-                lineHeight: 1,
-                gap: 0.15,
-              }}
-            >
-              <Typography
-                variant='h6'
-                component='span'
-                sx={{ fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.05 }}
-              >
-                TripNest
-              </Typography>
-              <Typography
-                variant='caption'
-                color='text.secondary'
-                sx={{ display: { xs: 'none', sm: 'block' }, lineHeight: 1.1 }}
-              >
-
-              </Typography>
-            </Box>
+            <Typography variant='h6' component='span' sx={{ fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.05 }}>
+              TripNest
+            </Typography>
           </Box>
 
           {isMdUp ? (
@@ -186,17 +194,46 @@ const Header = () => {
                 </Button>
               ))}
               <Divider flexItem orientation='vertical' sx={{ mx: 0.5, borderColor: (t) => alpha(t.palette.divider, 0.7) }} />
-              <Button variant='contained' color='secondary' sx={{ px: 2.5, minHeight: 38 }}>
-                Start
-              </Button>
+              {isLoggedIn ? (
+                <>
+                  <Typography variant='body2' color='text.secondary' sx={{ px: 1, fontWeight: 500 }}>
+                    {user?.username}
+                  </Typography>
+                  <Button
+                    variant='outlined'
+                    color='inherit'
+                    onClick={handleLogout}
+                    startIcon={<LogoutRoundedIcon />}
+                    sx={{ px: 2, minHeight: 38, color: 'text.secondary' }}
+                  >
+                    Sign out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    component={RouterLink}
+                    to='/login'
+                    variant='text'
+                    color='inherit'
+                    sx={{ px: 2, minHeight: 38, color: 'text.secondary', '&:hover': { color: 'text.primary', bgcolor: 'transparent' } }}
+                  >
+                    Sign in
+                  </Button>
+                  <Button
+                    component={RouterLink}
+                    to='/register'
+                    variant='contained'
+                    color='secondary'
+                    sx={{ px: 2.5, minHeight: 38 }}
+                  >
+                    Register
+                  </Button>
+                </>
+              )}
             </Paper>
           ) : (
-            <IconButton
-              color='inherit'
-              aria-label='open menu'
-              edge='end'
-              onClick={handleDrawerToggle}
-            >
+            <IconButton color='inherit' aria-label='open menu' edge='end' onClick={handleDrawerToggle}>
               <MenuRoundedIcon />
             </IconButton>
           )}

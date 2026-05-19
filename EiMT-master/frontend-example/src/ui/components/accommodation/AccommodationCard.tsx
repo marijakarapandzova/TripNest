@@ -26,17 +26,17 @@ import type { Accommodation } from '../../../types/accommodation';
 interface AccommodationCardProps {
   accommodation: Accommodation;
   onCardClick?: (accommodationId: string | number) => void;
+  onEdit?: (accommodation: Accommodation) => void;
+  onDelete?: (accommodation: Accommodation) => void;
 }
 
-const AccommodationCard = ({ accommodation, onCardClick }: AccommodationCardProps) => {
+const AccommodationCard = ({ accommodation, onCardClick, onEdit, onDelete }: AccommodationCardProps) => {
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(menuAnchor);
   const detailPath = `/accommodations/${accommodation.id}`;
 
   const handleCardClick = () => {
-    if (onCardClick) {
-      onCardClick(accommodation.id);
-    }
+    if (onCardClick) onCardClick(accommodation.id);
   };
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -45,9 +45,7 @@ const AccommodationCard = ({ accommodation, onCardClick }: AccommodationCardProp
     setMenuAnchor(event.currentTarget);
   };
 
-  const handleMenuClose = () => {
-    setMenuAnchor(null);
-  };
+  const handleMenuClose = () => setMenuAnchor(null);
 
   const availabilityLabel = accommodation.rented ? 'Booked right now' : 'Available to book';
   const hasLowInventory = accommodation.numRooms <= 2 && !accommodation.rented;
@@ -95,30 +93,20 @@ const AccommodationCard = ({ accommodation, onCardClick }: AccommodationCardProp
                radial-gradient(circle at 80% 40%, ${alpha(t.palette.common.white, 0.14)} 0%, transparent 50%)`,
             pointerEvents: 'none',
           },
-          '&:focus-visible': {
-            outline: '2px solid',
-            outlineColor: 'secondary.light',
-            outlineOffset: 2,
-          },
+          '&:focus-visible': { outline: '2px solid', outlineColor: 'secondary.light', outlineOffset: 2 },
         }}
         aria-label={`View details for ${accommodation.name}`}
       >
         <Stack spacing={0.75} sx={{ alignItems: 'center', position: 'relative', zIndex: 1 }}>
-
-
-            <HomeRoundedIcon sx={{ fontSize: 52, color: alpha('#fff', 0.95) }} />
+          <HomeRoundedIcon sx={{ fontSize: 52, color: alpha('#fff', 0.95) }} />
           <Typography variant='subtitle2' sx={{ color: alpha('#fff', 0.9), letterSpacing: '0.1em' }}>
-             SELECT
+            SELECT
           </Typography>
         </Stack>
       </CardMedia>
 
       <CardContent sx={{ flex: '1 1 auto', pt: 2.25, pb: 1.25, px: 2.25 }}>
-        <Stack
-          direction='row'
-          spacing={1}
-          sx={{ mb: 1.25, justifyContent: 'space-between', alignItems: 'flex-start' }}
-        >
+        <Stack direction='row' spacing={1} sx={{ mb: 1.25, justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <Typography
             component='h3'
             variant='h6'
@@ -134,17 +122,19 @@ const AccommodationCard = ({ accommodation, onCardClick }: AccommodationCardProp
           >
             {accommodation.name}
           </Typography>
-          <IconButton
-            size='small'
-            aria-label='More actions'
-            aria-controls={menuOpen ? 'accommodation-card-menu' : undefined}
-            aria-haspopup='true'
-            aria-expanded={menuOpen ? 'true' : undefined}
-            onClick={handleMenuOpen}
-            sx={{ mt: -0.5, color: 'text.secondary' }}
-          >
-            <MoreVertRoundedIcon fontSize='small' />
-          </IconButton>
+          {(onEdit || onDelete) && (
+            <IconButton
+              size='small'
+              aria-label='More actions'
+              aria-controls={menuOpen ? 'accommodation-card-menu' : undefined}
+              aria-haspopup='true'
+              aria-expanded={menuOpen ? 'true' : undefined}
+              onClick={handleMenuOpen}
+              sx={{ mt: -0.5, color: 'text.secondary' }}
+            >
+              <MoreVertRoundedIcon fontSize='small' />
+            </IconButton>
+          )}
         </Stack>
 
         <Stack direction='row' spacing={0.5} sx={{ color: 'text.secondary', mb: 1.5, alignItems: 'center' }}>
@@ -159,7 +149,7 @@ const AccommodationCard = ({ accommodation, onCardClick }: AccommodationCardProp
             variant='outlined'
             sx={{ fontWeight: 500, borderColor: 'divider' }}
           />
-          {accommodation.numRooms > 0 &&
+          {accommodation.numRooms > 0 && (
             <Chip
               size='small'
               label={hasLowInventory ? 'Almost sold out!' : 'Good availability'}
@@ -167,19 +157,16 @@ const AccommodationCard = ({ accommodation, onCardClick }: AccommodationCardProp
               variant='outlined'
               sx={{ fontWeight: 500 }}
             />
-          }
-          
+          )}
         </Stack>
 
         <Chip
           size='medium'
           label={availabilityLabel}
-          color={accommodation.rented ? 'success' : 'success'}
+          color='success'
           sx={{
             fontWeight: 600,
-            ...(accommodation.rented
-              ? { bgcolor: (t) => alpha(t.palette.error.main, 1) }
-              : {}),
+            ...(accommodation.rented ? { bgcolor: (t) => alpha(t.palette.error.main, 1) } : {}),
           }}
         />
       </CardContent>
@@ -205,31 +192,20 @@ const AccommodationCard = ({ accommodation, onCardClick }: AccommodationCardProp
         onClose={handleMenuClose}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        slotProps={{
-          list: { dense: true, 'aria-labelledby': 'accommodation-card-menu' },
-        }}
+        slotProps={{ list: { dense: true } }}
       >
-        <MenuItem
-          onClick={() => {
-            handleMenuClose();
-          }}
-        >
-          <ListItemIcon>
-            <EditRoundedIcon fontSize='small' />
-          </ListItemIcon>
-          <ListItemText primary='Edit listing' />
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            handleMenuClose();
-          }}
-          sx={{ color: 'error.main' }}
-        >
-          <ListItemIcon>
-            <DeleteOutlineRoundedIcon fontSize='small' color='error' />
-          </ListItemIcon>
-          <ListItemText primary='Remove' />
-        </MenuItem>
+        {onEdit && (
+          <MenuItem onClick={() => { handleMenuClose(); onEdit(accommodation); }}>
+            <ListItemIcon><EditRoundedIcon fontSize='small' /></ListItemIcon>
+            <ListItemText primary='Edit listing' />
+          </MenuItem>
+        )}
+        {onDelete && (
+          <MenuItem onClick={() => { handleMenuClose(); onDelete(accommodation); }} sx={{ color: 'error.main' }}>
+            <ListItemIcon><DeleteOutlineRoundedIcon fontSize='small' color='error' /></ListItemIcon>
+            <ListItemText primary='Remove' />
+          </MenuItem>
+        )}
       </Menu>
     </Card>
   );

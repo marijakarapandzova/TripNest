@@ -72,7 +72,9 @@ public class AccommodationServiceImpl implements AccommodationService {
         existingAccommodation.setName(accommodation.getName());
         existingAccommodation.setCategory(accommodation.getCategory());
         existingAccommodation.setHost(accommodation.getHost());
+        existingAccommodation.setCondition(accommodation.getCondition());
         existingAccommodation.setNumRooms(accommodation.getNumRooms());
+        existingAccommodation.setRented(accommodation.getRented());
         return accommodationRepository.save(existingAccommodation);
     }
 
@@ -80,15 +82,6 @@ public class AccommodationServiceImpl implements AccommodationService {
     public Accommodation delete(Long id) {
         Accommodation accommodation = accommodationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(String.format("Accommodation with id %d not found!", id)));
-
-        if(accommodation.getRented()) {
-            throw new AccommodationIsRentedException(accommodation.getId());
-        }
-
-        if(accommodation.getCondition() == Condition.GOOD) {
-            throw new AccommodationInGoodConditionException(accommodation.getId());
-        }
-
         accommodationRepository.delete(accommodation);
         return accommodation;
     }

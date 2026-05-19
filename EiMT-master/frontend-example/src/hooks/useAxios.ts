@@ -1,16 +1,36 @@
 import axios from 'axios';
 
-export const useAxios = axios.create({
-    // Use same-origin /api; Vite dev server proxies to the backend.
-    baseURL: '/api',
+const useAxios = axios.create({
+    baseURL: import.meta.env.VITE_BASE_API_URL,
     headers: {
         'Content-Type': 'application/json'
     }
 });
 
-export const axiosHeaders = {
-    // Token can be provided via Vite env (e.g. VITE_TOKEN) if you want to test protected endpoints.
-    ...(import.meta.env.VITE_TOKEN
-        ? { Authorization: `Bearer ${import.meta.env.VITE_TOKEN}` }
-        : {})
-};
+useAxios.interceptors.request.use(
+    (config) => {
+        const jwtToken = localStorage.getItem('token');
+        if (jwtToken) {
+            config.headers.Authorization = `Bearer ${jwtToken}`
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
+useAxios.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+        }
+        if (error.response?.data?.message) {
+            error.message = error.response.data.message;
+        }
+        return Promise.reject(error);
+    }
+);
+
+export { useAxios };
+export default useAxios;

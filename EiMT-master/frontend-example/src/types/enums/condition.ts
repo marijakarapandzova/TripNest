@@ -1,4 +1,4 @@
 export enum Condition {
-    GOOD,
-    BAD
+    GOOD = 'GOOD',
+    BAD = 'BAD'
 }

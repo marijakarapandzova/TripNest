@@ -1,3 +1,6 @@
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import MoreVertRoundedIcon from '@mui/icons-material/MoreVertRounded';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import {
   alpha,
@@ -7,18 +10,36 @@ import {
   CardContent,
   CardMedia,
   Chip,
+  IconButton,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
   Stack,
   Typography,
 } from '@mui/material';
+import { useState } from 'react';
 import { Link as RouterLink } from 'react-router';
 import type { Country } from '../../../types/country';
 
 interface CountryCardProps {
   country: Country;
+  onEdit?: (country: Country) => void;
+  onDelete?: (country: Country) => void;
 }
 
-const CountryCard = ({ country }: CountryCardProps) => {
+const CountryCard = ({ country, onEdit, onDelete }: CountryCardProps) => {
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const menuOpen = Boolean(menuAnchor);
   const detailPath = `/countries/${country.id}`;
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setMenuAnchor(event.currentTarget);
+  };
+
+  const handleMenuClose = () => setMenuAnchor(null);
 
   return (
     <Card
@@ -61,11 +82,7 @@ const CountryCard = ({ country }: CountryCardProps) => {
                radial-gradient(circle at 78% 42%, ${alpha(t.palette.common.white, 0.14)} 0%, transparent 52%)`,
             pointerEvents: 'none',
           },
-          '&:focus-visible': {
-            outline: '2px solid',
-            outlineColor: 'secondary.light',
-            outlineOffset: 2,
-          },
+          '&:focus-visible': { outline: '2px solid', outlineColor: 'secondary.light', outlineOffset: 2 },
         }}
         aria-label={`View details for ${country.name}`}
       >
@@ -78,22 +95,36 @@ const CountryCard = ({ country }: CountryCardProps) => {
       </CardMedia>
 
       <CardContent sx={{ flex: '1 1 auto', pt: 2.25, pb: 1.25, px: 2.25 }}>
-        <Typography
-          component='h3'
-          variant='h6'
-          sx={{
-            fontWeight: 600,
-            lineHeight: 1.3,
-            mb: 1.25,
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            textAlign: 'left',
-          }}
-        >
-          {country.name}
-        </Typography>
+        <Stack direction='row' spacing={1} sx={{ mb: 1.25, justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <Typography
+            component='h3'
+            variant='h6'
+            sx={{
+              fontWeight: 600,
+              lineHeight: 1.3,
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textAlign: 'left',
+            }}
+          >
+            {country.name}
+          </Typography>
+          {(onEdit || onDelete) && (
+            <IconButton
+              size='small'
+              aria-label='More actions'
+              aria-controls={menuOpen ? 'country-card-menu' : undefined}
+              aria-haspopup='true'
+              aria-expanded={menuOpen ? 'true' : undefined}
+              onClick={handleMenuOpen}
+              sx={{ mt: -0.5, color: 'text.secondary' }}
+            >
+              <MoreVertRoundedIcon fontSize='small' />
+            </IconButton>
+          )}
+        </Stack>
 
         <Chip
           size='small'
@@ -117,6 +148,29 @@ const CountryCard = ({ country }: CountryCardProps) => {
           View country
         </Button>
       </CardActions>
+
+      <Menu
+        id='country-card-menu'
+        anchorEl={menuAnchor}
+        open={menuOpen}
+        onClose={handleMenuClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        slotProps={{ list: { dense: true } }}
+      >
+        {onEdit && (
+          <MenuItem onClick={() => { handleMenuClose(); onEdit(country); }}>
+            <ListItemIcon><EditRoundedIcon fontSize='small' /></ListItemIcon>
+            <ListItemText primary='Edit country' />
+          </MenuItem>
+        )}
+        {onDelete && (
+          <MenuItem onClick={() => { handleMenuClose(); onDelete(country); }} sx={{ color: 'error.main' }}>
+            <ListItemIcon><DeleteOutlineRoundedIcon fontSize='small' color='error' /></ListItemIcon>
+            <ListItemText primary='Remove' />
+          </MenuItem>
+        )}
+      </Menu>
     </Card>
   );
 };

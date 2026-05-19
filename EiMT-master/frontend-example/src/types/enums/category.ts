@@ -1,8 +1,8 @@
 export enum Category {
-    ROOM,
-    HOUSE,
-    FLAT,
-    APARTMENT,
-    HOTEL,
-    MOTEL
+    ROOM = 'ROOM',
+    HOUSE = 'HOUSE',
+    FLAT = 'FLAT',
+    APARTMENT = 'APARTMENT',
+    HOTEL = 'HOTEL',
+    MOTEL = 'MOTEL'
 }

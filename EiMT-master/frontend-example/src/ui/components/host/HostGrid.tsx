@@ -5,12 +5,12 @@ import type { Host } from '../../../types/host';
 interface HostGridProps {
   hosts: Host[];
   countryNameById?: Record<number, string>;
+  onEdit?: (host: Host) => void;
+  onDelete?: (host: Host) => void;
 }
 
-const HostGrid = ({ hosts, countryNameById }: HostGridProps) => {
-  if (hosts.length === 0) {
-    return null;
-  }
+const HostGrid = ({ hosts, countryNameById, onEdit, onDelete }: HostGridProps) => {
+  if (hosts.length === 0) return null;
 
   return (
     <Grid
@@ -26,7 +26,12 @@ const HostGrid = ({ hosts, countryNameById }: HostGridProps) => {
           size={{ xs: 12, sm: 6, md: 4 }}
           sx={{ display: 'flex', minWidth: 0 }}
         >
-          <HostCard host={host} countryName={countryNameById?.[host.country_id]} />
+          <HostCard
+            host={host}
+            countryName={countryNameById?.[host.country_id]}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
         </Grid>
       ))}
     </Grid>

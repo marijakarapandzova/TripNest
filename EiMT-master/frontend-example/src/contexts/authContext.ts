@@ -1,0 +1,14 @@
+import { createContext } from 'react';
+import type { UserPayload } from '../types/user';
+
+export interface AuthContextType {
+    user: UserPayload | null;
+    login: (jwtToken: string) => void;
+    logout: () => void;
+    isLoggedIn: boolean;
+    isAdmin: boolean;
+}
+
+const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+
+export default AuthContext;
