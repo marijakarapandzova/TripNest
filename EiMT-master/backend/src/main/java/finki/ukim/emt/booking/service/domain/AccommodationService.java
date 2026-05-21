@@ -1,6 +1,7 @@
 package finki.ukim.emt.booking.service.domain;
 
 import finki.ukim.emt.booking.model.domain.Accommodation;
+import finki.ukim.emt.booking.model.domain.Reservation;
 import finki.ukim.emt.booking.model.dto.accommodations.FilterAccommodationDto;
 import finki.ukim.emt.booking.model.projection.AccommodationDetailedSummaryProjection;
 import finki.ukim.emt.booking.model.projection.AccommodationSummaryProjection;
@@ -30,4 +31,12 @@ public interface AccommodationService {
     Accommodation unrent(Long id);
 
     Page<Accommodation> findAll(FilterAccommodationDto filter, int page, int size, String sortBy);
+
+    Reservation createReservation(Long accommodationId, Long userId);
+
+    Reservation cancelReservation(Long reservationId);
+
+    List<Reservation> findReservationsByAccommodation(Long accommodationId);
+
+    List<Reservation> findReservationsByUser(Long userId);
 }

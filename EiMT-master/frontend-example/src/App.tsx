@@ -11,6 +11,7 @@ import HostsPage from './ui/pages/HostsPage/HostsPage';
 import CountriesPage from './ui/pages/CountriesPage/CountriesPage';
 import LoginPage from './ui/pages/AuthPage/LoginPage';
 import RegisterPage from './ui/pages/AuthPage/RegisterPage';
+import ReservationsPage from './ui/pages/ReservationsPage/ReservationsPage';
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
               <Route index element={<CountriesPage />} />
               <Route path=':id' element={<CountryDetailsPage />} />
             </Route>
+            <Route path='reservations' element={<ReservationsPage />} />
           </Route>
         </Route>
       </Routes>

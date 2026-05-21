@@ -5,6 +5,8 @@ import finki.ukim.emt.booking.model.domain.Host;
 import finki.ukim.emt.booking.model.dto.accommodations.CreateAccommodationDto;
 import finki.ukim.emt.booking.model.dto.accommodations.DisplayAccommodationDto;
 import finki.ukim.emt.booking.model.dto.accommodations.FilterAccommodationDto;
+import finki.ukim.emt.booking.model.dto.reservations.CreateReservationDto;
+import finki.ukim.emt.booking.model.dto.reservations.DisplayReservationDto;
 import finki.ukim.emt.booking.model.projection.AccommodationDetailedSummaryProjection;
 import finki.ukim.emt.booking.model.projection.AccommodationSummaryProjection;
 import finki.ukim.emt.booking.service.application.AccommodationApplicationService;
@@ -82,5 +84,30 @@ public class AccommodationApplicationServiceImpl implements AccommodationApplica
     public Page<DisplayAccommodationDto> findAll(FilterAccommodationDto filter, int page, int size, String sortBy) {
         return accommodationService.findAll(filter, page, size, sortBy)
                 .map(DisplayAccommodationDto::from);
+    }
+
+    @Override
+    public DisplayReservationDto createReservation(CreateReservationDto createReservationDto) {
+        return DisplayReservationDto.from(
+                accommodationService.createReservation(
+                        createReservationDto.accommodationId(),
+                        createReservationDto.userId()
+                )
+        );
+    }
+
+    @Override
+    public DisplayReservationDto cancelReservation(Long reservationId) {
+        return DisplayReservationDto.from(accommodationService.cancelReservation(reservationId));
+    }
+
+    @Override
+    public List<DisplayReservationDto> findReservationsByAccommodation(Long accommodationId) {
+        return DisplayReservationDto.from(accommodationService.findReservationsByAccommodation(accommodationId));
+    }
+
+    @Override
+    public List<DisplayReservationDto> findReservationsByUser(Long userId) {
+        return DisplayReservationDto.from(accommodationService.findReservationsByUser(userId));
     }
 }

@@ -1,8 +1,11 @@
 package finki.ukim.emt.booking.web.controller;
 
+import finki.ukim.emt.booking.model.domain.User;
 import finki.ukim.emt.booking.model.dto.accommodations.CreateAccommodationDto;
 import finki.ukim.emt.booking.model.dto.accommodations.DisplayAccommodationDto;
 import finki.ukim.emt.booking.model.dto.accommodations.FilterAccommodationDto;
+import finki.ukim.emt.booking.model.dto.reservations.CreateReservationDto;
+import finki.ukim.emt.booking.model.dto.reservations.DisplayReservationDto;
 import finki.ukim.emt.booking.model.dto.stats.DisplayAccommodationActivityLogDto;
 import finki.ukim.emt.booking.model.dto.stats.DisplayAccommodationStatsViewDto;
 import finki.ukim.emt.booking.model.dto.views.DisplayAccommodationViewDto;
@@ -14,9 +17,11 @@ import finki.ukim.emt.booking.service.application.AccommodationViewApplicationSe
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 
 @RestController
 @RequestMapping("api/accommodations")
@@ -114,5 +119,33 @@ public class AccommodationController {
     @PostMapping("/unrent/{id}")
     public ResponseEntity<DisplayAccommodationDto> unrent(@PathVariable Long id) {
         return ResponseEntity.ok(accommodationApplicationService.unrent(id));
+    }
+
+    @PostMapping("/reserve")
+    public ResponseEntity<DisplayReservationDto> createReservation(
+            @RequestBody @Valid CreateReservationDto createReservationDto,
+            @AuthenticationPrincipal User authenticatedUser) {
+        CreateReservationDto requestWithUser = new CreateReservationDto(
+                createReservationDto.accommodationId(),
+                authenticatedUser.getId()
+        );
+        return ResponseEntity.ok(accommodationApplicationService.createReservation(requestWithUser));
+    }
+
+    @PostMapping("/reservations/{reservationId}/cancel")
+    public ResponseEntity<DisplayReservationDto> cancelReservation(
+            @PathVariable Long reservationId,
+            @AuthenticationPrincipal User authenticatedUser) {
+        return ResponseEntity.ok(accommodationApplicationService.cancelReservation(reservationId));
+    }
+
+    @GetMapping("/{accommodationId}/reservations")
+    public ResponseEntity<List<DisplayReservationDto>> findReservationsByAccommodation(@PathVariable Long accommodationId) {
+        return ResponseEntity.ok(accommodationApplicationService.findReservationsByAccommodation(accommodationId));
+    }
+
+    @GetMapping("/user/reservations")
+    public ResponseEntity<List<DisplayReservationDto>> findUserReservations(@AuthenticationPrincipal User authenticatedUser) {
+        return ResponseEntity.ok(accommodationApplicationService.findReservationsByUser(authenticatedUser.getId()));
     }
 }

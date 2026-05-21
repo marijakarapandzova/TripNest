@@ -39,7 +39,8 @@ public class JwtWebSecurityConfig {
         corsConfiguration.setAllowedOrigins(List.of(
                 "http://localhost:3000",
                 "http://localhost:8081",
-                "http://localhost:5173"
+                "http://localhost:5173",
+                "http://localhost:5174"
         ));
         corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         corsConfiguration.setAllowedHeaders(List.of("*"));
@@ -75,29 +76,21 @@ public class JwtWebSecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // ✅ PUBLIC endpoints
+                        //  PUBLIC endpoints
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/api/user/register",
-                                "/api/user/login",
-                                "/api/accommodations",
-                                "/api/accommodations/**",
-                                "/api/countries",
-                                "/api/countries/**",
-                                "/api/hosts",
-                                "/api/hosts/**"
+                                "/api/user/login"
                         ).permitAll()
 
-                        // 🔐 AUTHENTICATED
-                        .requestMatchers("/api/user/me").authenticated()
-
-                        // 👑 ADMIN ONLY
+                        //  ADMIN ONLY
                         .requestMatchers(
                                 "/api/accommodations/add",
                                 "/api/accommodations/edit/**",
                                 "/api/accommodations/delete/**",
-                                "/api/accommodations/rent",
+                                "/api/accommodations/rent/**",
+                                "/api/accommodations/unrent/**",
                                 "/api/countries/add",
                                 "/api/countries/edit/**",
                                 "/api/countries/delete/**",
@@ -105,6 +98,33 @@ public class JwtWebSecurityConfig {
                                 "/api/hosts/edit/**",
                                 "/api/hosts/delete/**"
                         ).hasRole("ADMINISTRATOR")
+
+                        //  AUTHENTICATED
+                        .requestMatchers(
+                                "/api/user/me",
+                                "/api/accommodations/reserve",
+                                "/api/accommodations/reservations/**",
+                                "/api/accommodations/user/reservations"
+                        ).authenticated()
+
+
+                        .requestMatchers(
+                                "/api/accommodations",
+                                "/api/accommodations/paginated",
+                                "/api/accommodations/summary",
+                                "/api/accommodations/detailed-summary",
+                                "/api/accommodations/rented/**",
+                                "/api/accommodations/views",
+                                "/api/accommodations/stats",
+                                "/api/accommodations/activity",
+                                "/api/accommodations/activity/all",
+                                "/api/accommodations/*/reservations",
+                                "/api/accommodations/**",
+                                "/api/countries",
+                                "/api/countries/**",
+                                "/api/hosts",
+                                "/api/hosts/**"
+                        ).permitAll()
 
                         // fallback
                         .anyRequest().authenticated()

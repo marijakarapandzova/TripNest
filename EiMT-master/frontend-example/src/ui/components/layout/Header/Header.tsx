@@ -5,6 +5,7 @@ import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
+import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
 import {
   AppBar,
   Box,
@@ -28,11 +29,16 @@ import { useState } from 'react';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../../../../hooks/useAuth';
 
-const navItems = [
+const publicNavItems = [
   { label: 'Home', to: '/', icon: <HomeRoundedIcon fontSize='small' /> },
   { label: 'Stays', to: '/accommodations', icon: <TravelExploreRoundedIcon fontSize='small' /> },
   { label: 'Hosts', to: '/hosts', icon: <PersonRoundedIcon fontSize='small' /> },
   { label: 'Countries', to: '/countries', icon: <PublicRoundedIcon fontSize='small' /> },
+];
+
+const authenticatedNavItems = [
+  ...publicNavItems,
+  { label: 'Reservations', to: '/reservations', icon: <BookmarkRoundedIcon fontSize='small' /> },
 ];
 
 const Header = () => {
@@ -67,7 +73,7 @@ const Header = () => {
       </Box>
       <Divider />
       <List sx={{ px: 1, py: 1 }}>
-        {navItems.map((item) => (
+        {(isLoggedIn ? authenticatedNavItems : publicNavItems).map((item) => (
           <ListItem key={item.to} disablePadding>
             <ListItemButton
               component={RouterLink}
@@ -175,7 +181,7 @@ const Header = () => {
                 bgcolor: (t) => alpha(t.palette.background.paper, 0.75),
               }}
             >
-              {navItems.map((item) => (
+              {(isLoggedIn ? authenticatedNavItems : publicNavItems).map((item) => (
                 <Button
                   key={item.to}
                   component={RouterLink}

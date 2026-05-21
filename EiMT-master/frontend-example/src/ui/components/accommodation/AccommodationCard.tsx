@@ -3,6 +3,7 @@ import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
 import MoreVertRoundedIcon from '@mui/icons-material/MoreVertRounded';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
+import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
 import {
   alpha,
   Button,
@@ -18,22 +19,31 @@ import {
   ListItemText,
   Stack,
   Typography,
+  Alert,
+  CircularProgress,
 } from '@mui/material';
 import { useState } from 'react';
 import { Link as RouterLink } from 'react-router';
 import type { Accommodation } from '../../../types/accommodation';
+import { useAuth } from '../../../hooks/useAuth';
+import useReservation from '../../../hooks/reservation/useReservation';
 
 interface AccommodationCardProps {
   accommodation: Accommodation;
   onCardClick?: (accommodationId: string | number) => void;
   onEdit?: (accommodation: Accommodation) => void;
   onDelete?: (accommodation: Accommodation) => void;
+  onReserve?: (accommodation: Accommodation) => void;
 }
 
-const AccommodationCard = ({ accommodation, onCardClick, onEdit, onDelete }: AccommodationCardProps) => {
+const AccommodationCard = ({ accommodation, onCardClick, onEdit, onDelete, onReserve }: AccommodationCardProps) => {
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const [reserveMessage, setReserveMessage] = useState<string | null>(null);
+  const [reserveError, setReserveError] = useState<string | null>(null);
   const menuOpen = Boolean(menuAnchor);
   const detailPath = `/accommodations/${accommodation.id}`;
+  const { isLoggedIn } = useAuth();
+  const { createReservation, loading: reserving } = useReservation();
 
   const handleCardClick = () => {
     if (onCardClick) onCardClick(accommodation.id);
@@ -46,6 +56,22 @@ const AccommodationCard = ({ accommodation, onCardClick, onEdit, onDelete }: Acc
   };
 
   const handleMenuClose = () => setMenuAnchor(null);
+
+  const handleReserve = async () => {
+    setReserveError(null);
+    setReserveMessage(null);
+
+    try {
+      await createReservation({ accommodationId: accommodation.id });
+      setReserveMessage('Reservation created successfully!');
+      if (onReserve) onReserve(accommodation);
+      setTimeout(() => setReserveMessage(null), 3000);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Failed to create reservation';
+      setReserveError(errorMsg);
+      setTimeout(() => setReserveError(null), 5000);
+    }
+  };
 
   const availabilityLabel = accommodation.rented ? 'Booked right now' : 'Available to book';
   const hasLowInventory = accommodation.numRooms <= 2 && !accommodation.rented;
@@ -171,7 +197,10 @@ const AccommodationCard = ({ accommodation, onCardClick, onEdit, onDelete }: Acc
         />
       </CardContent>
 
-      <CardActions sx={{ p: 2.25, pt: 0, mt: 'auto' }}>
+      {reserveMessage && <Alert severity='success' sx={{ m: 1.5 }}>{reserveMessage}</Alert>}
+      {reserveError && <Alert severity='error' sx={{ m: 1.5 }}>{reserveError}</Alert>}
+
+      <CardActions sx={{ p: 2.25, pt: 0, mt: 'auto', display: 'flex', flexDirection: 'column', gap: 1 }}>
         <Button
           component={RouterLink}
           to={detailPath}
@@ -183,6 +212,20 @@ const AccommodationCard = ({ accommodation, onCardClick, onEdit, onDelete }: Acc
         >
           View details
         </Button>
+        {isLoggedIn && (
+          <Button
+            onClick={handleReserve}
+            disabled={reserving}
+            variant='outlined'
+            color='success'
+            fullWidth
+            size='large'
+            startIcon={reserving ? <CircularProgress size={20} /> : <BookmarkRoundedIcon />}
+            sx={{ borderRadius: 2 }}
+          >
+            {reserving ? 'Reserving...' : 'Reserve this accommodation'}
+          </Button>
+        )}
       </CardActions>
 
       <Menu

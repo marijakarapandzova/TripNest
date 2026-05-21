@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(mvn clean *)",
+      "Bash(awk '{print $2}')"
     ]
   }
 }

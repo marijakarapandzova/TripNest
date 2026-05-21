@@ -2,8 +2,11 @@ package finki.ukim.emt.booking.service.domain.impl;
 
 import finki.ukim.emt.booking.event.AccommodationRentedEvent;
 import finki.ukim.emt.booking.model.domain.Accommodation;
+import finki.ukim.emt.booking.model.domain.Reservation;
+import finki.ukim.emt.booking.model.domain.User;
 import finki.ukim.emt.booking.model.dto.accommodations.FilterAccommodationDto;
 import finki.ukim.emt.booking.model.enums.Condition;
+import finki.ukim.emt.booking.model.enums.ReservationStatus;
 import finki.ukim.emt.booking.model.exception.AccommodationInGoodConditionException;
 import finki.ukim.emt.booking.model.exception.AccommodationIsRentedException;
 import finki.ukim.emt.booking.model.exception.AccommodationNotAvailableException;
@@ -11,6 +14,8 @@ import finki.ukim.emt.booking.model.exception.ResourceNotFoundException;
 import finki.ukim.emt.booking.model.projection.AccommodationDetailedSummaryProjection;
 import finki.ukim.emt.booking.model.projection.AccommodationSummaryProjection;
 import finki.ukim.emt.booking.repository.AccommodationRepository;
+import finki.ukim.emt.booking.repository.ReservationRepository;
+import finki.ukim.emt.booking.repository.UserRepository;
 import finki.ukim.emt.booking.service.domain.AccommodationService;
 import finki.ukim.emt.booking.specification.AccommodationSpecification;
 import jakarta.transaction.Transactional;
@@ -27,10 +32,14 @@ import java.util.List;
 @Service
 public class AccommodationServiceImpl implements AccommodationService {
     private final AccommodationRepository accommodationRepository;
+    private final ReservationRepository reservationRepository;
+    private final UserRepository userRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
 
-    public AccommodationServiceImpl(AccommodationRepository accommodationRepository, ApplicationEventPublisher applicationEventPublisher) {
+    public AccommodationServiceImpl(AccommodationRepository accommodationRepository, ReservationRepository reservationRepository, UserRepository userRepository, ApplicationEventPublisher applicationEventPublisher) {
         this.accommodationRepository = accommodationRepository;
+        this.reservationRepository = reservationRepository;
+        this.userRepository = userRepository;
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
@@ -126,5 +135,46 @@ public class AccommodationServiceImpl implements AccommodationService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         Specification<Accommodation> specification = AccommodationSpecification.withFilters(filter);
         return accommodationRepository.findAll(specification, pageable);
+    }
+
+    @Override
+    @Transactional
+    public Reservation createReservation(Long accommodationId, Long userId) {
+        Accommodation accommodation = accommodationRepository.findById(accommodationId)
+                .orElseThrow(() -> new ResourceNotFoundException(String.format("Accommodation with id %d not found!", accommodationId)));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(String.format("User with id %d not found!", userId)));
+
+        if (accommodation.getHost().getId().equals(user.getId())) {
+            throw new IllegalArgumentException("A host cannot reserve their own accommodation!");
+        }
+
+        Reservation reservation = new Reservation();
+        reservation.setAccommodation(accommodation);
+        reservation.setUser(user);
+        reservation.setStatus(ReservationStatus.CREATED);
+
+        return reservationRepository.save(reservation);
+    }
+
+    @Override
+    @Transactional
+    public Reservation cancelReservation(Long reservationId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new ResourceNotFoundException(String.format("Reservation with id %d not found!", reservationId)));
+
+        reservation.setStatus(ReservationStatus.CANCELLED);
+        return reservationRepository.save(reservation);
+    }
+
+    @Override
+    public List<Reservation> findReservationsByAccommodation(Long accommodationId) {
+        return reservationRepository.findByAccommodationId(accommodationId);
+    }
+
+    @Override
+    public List<Reservation> findReservationsByUser(Long userId) {
+        return reservationRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 }
